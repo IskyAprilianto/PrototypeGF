@@ -5,7 +5,9 @@ import pandas as pd
 from datetime import datetime
 
 # Konfigurasi API
-FLASK_API_URL = 'http://127.0.0.1:5000/get_data'
+# Ganti URL ini dengan URL publik yang didapatkan dari Replit
+FLASK_API_URL = 'https://9fda3355-e9d0-407b-8251-e35d4b04d34e-00-2qpujfr3z6si3.riker.replit.dev:5001/get_data'
+
 GEMINI_API_KEY = 'AIzaSyBdWBk-_PHYl15ZdAFspcaEKtwwMcrymvw'  # Pastikan API key valid
 GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
 
