@@ -6,8 +6,8 @@ import network
 
 # ========== KONFIGURASI ==========
 # WiFi
-SSID = 'FTI-USAKTI'
-PASSWORD = 'trisakti2022'
+SSID = 'Mochi'
+PASSWORD = 'cukipuki'
 
 # Ubidots
 UBIDOTS_API_KEY = 'BBUS-X22dYuktZNwot2UyXDlW0br7H6FOIF'
@@ -16,8 +16,8 @@ VARIABLE_LABEL_TEMP = 'temperature'
 VARIABLE_LABEL_HUM = 'humidity'
 VARIABLE_LABEL_LDR = 'ldr_value'
 
-# Flask API
-FLASK_API_URL = 'http://10.24.81.52:5000/add_data'
+# Flask API (ganti dengan URL server Flask yang benar)
+FLASK_API_URL = 'https://9fda3355-e9d0-407b-8251-e35d4b04d3e4-00-2qpufjr3z6si3.riker.replit.dev:3000/add_data'
 
 # Pin
 DHT_PIN = 4
@@ -91,7 +91,7 @@ def send_data_to_ubidots(temp, hum, ldr_value):
         return False
 
 def send_data_to_flask(temp, hum, ldr_value):
-    """Mengirim data ke server Flask lokal"""
+    """Mengirim data ke server Flask"""
     try:
         payload = {
             "temperature": temp,
@@ -179,3 +179,4 @@ while True:
     except Exception as e:
         print("\nError tidak terduga:", e)
         time.sleep(10)
+
