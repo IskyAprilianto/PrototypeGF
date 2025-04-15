@@ -205,5 +205,5 @@ else:
 # Catatan kaki
 st.markdown("---")
 st.caption("Sistem Monitoring Rumah Kaca Cerdas Starlith Team © 2024 - Powered by Flask, Streamlit, dan Gemini AI")
-st.caption("🧐Catatan : Streamlit bisa saja tidak terhubung ke sever (backend flask) dikarenakan running server pada replit(webhosting yang free) sering off sendiri, untuk mentor atau reviewers tidak bisa mengakses dikarenakan server mati dapat menjalankan secara lokal atau bisa chat salah satu anggota kelompok agar segera menghidupkan kembali server pada Replit")
+st.caption("🧐Catatan : Streamlit bisa saja tidak terhubung ke sever (backend flask) dikarenakan running server pada replit(webhosting yang free) auto sleep setiap 5 menit ketika tidak ada request dan ping ke server, untuk mentor atau reviewers tidak bisa mengakses dikarenakan server mati dapat menjalankan secara lokal atau bisa chat salah satu anggota kelompok agar segera menghidupkan kembali server pada Replit")
 st.caption("Terimakasih 😁👍")
