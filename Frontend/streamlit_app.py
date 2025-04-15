@@ -205,3 +205,4 @@ else:
 # Catatan kaki
 st.markdown("---")
 st.caption("Sistem Monitoring Rumah Kaca Cerdas Starlith Team © 2024 - Powered by Flask, Streamlit, dan Gemini AI")
+st.caption("Catatan : Streamlite bisa saja tidak terhubung ke sever (backend flask) dikarenakan running pada replit sering mati sendiri")
