@@ -76,7 +76,7 @@ def format_timestamp(ts):
 
 # Antarmuka Streamlit
 st.set_page_config(page_title="Monitoring Rumah Kaca", layout="wide")
-st.title('🌿 Monitoring Rumah Kaca Cerdas')
+st.title('🌿 Monitoring Rumah Kaca Cerdas Canopya')
 
 # Menambahkan CSS untuk penataan tampilan
 st.markdown("""
