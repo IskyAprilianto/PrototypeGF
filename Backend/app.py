@@ -7,6 +7,7 @@ from bson import ObjectId
 from bson.json_util import dumps
 from pymongo.errors import PyMongoError
 import logging
+import os
 
 app = Flask(__name__)
 
@@ -25,10 +26,10 @@ try:
     client = MongoClient(
         MONGO_URI,
         serverSelectionTimeoutMS=5000,  # 5 detik timeout
-        socketTimeoutMS=30000,         # 30 detik socket timeout
-        connectTimeoutMS=10000         # 10 detik connection timeout
+        socketTimeoutMS=30000,  # 30 detik socket timeout
+        connectTimeoutMS=10000  # 10 detik connection timeout
     )
-    
+
     # Test koneksi
     client.server_info()  # Akan memunculkan exception jika gagal
     db = client['iot_data']
@@ -38,11 +39,17 @@ except PyMongoError as e:
     logger.error(f"Gagal terhubung ke MongoDB: {str(e)}")
     raise SystemExit(1)  # Keluar jika tidak bisa konek ke MongoDB
 
+
+@app.route('/')
+def home():
+    return "Selamat datang di Flask!"  # Menampilkan pesan di URL utama
+
+
 @app.route('/add_data', methods=['POST'])
 def add_data():
     try:
         logger.info("Menerima request /add_data")
-        
+
         # Validasi content-type
         if not request.is_json:
             logger.warning("Request bukan JSON")
@@ -89,13 +96,14 @@ def add_data():
         # Insert ke MongoDB dengan error handling khusus
         try:
             result = collection.insert_one(sensor_data)
-            logger.info(f"Data berhasil disimpan dengan ID: {result.inserted_id}")
-            
+            logger.info(
+                f"Data berhasil disimpan dengan ID: {result.inserted_id}")
+
             # Menyiapkan response
             response_data = {
-                **sensor_data,
-                '_id': str(result.inserted_id),
-                'inserted_at': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                **sensor_data, '_id': str(result.inserted_id),
+                'inserted_at': time.strftime("%Y-%m-%d %H:%M:%S",
+                                             time.localtime())
             }
 
             return jsonify({
@@ -120,45 +128,52 @@ def add_data():
             "message": str(e)
         }), 500
 
+
 @app.route('/get_data', methods=['GET'])
 def get_data():
     try:
         logger.info("Menerima request /get_data")
-        
+
         # Ambil parameter query
         limit = int(request.args.get('limit', 10))
         sort_order = int(request.args.get('sort', -1))  # -1 untuk descending
-        
+
         # Query database dengan error handling
         try:
-            cursor = collection.find().sort('timestamp', sort_order).limit(limit)
+            cursor = collection.find().sort('timestamp',
+                                            sort_order).limit(limit)
             data = list(cursor)
-            
+
             # Konversi ObjectId dan format timestamp
             processed_data = []
             for item in data:
                 processed_item = {
-                    '_id': str(item['_id']),  # Convert ObjectId to string
-                    'temperature': item['temperature'],
-                    'humidity': item['humidity'],
-                    'ldr_value': item['ldr_value'],
-                    'status': item.get('status', 'active'),
-                    'timestamp': item['timestamp'],
-                    'formatted_timestamp': time.strftime(
-                        '%Y-%m-%d %H:%M:%S', 
-                        time.localtime(item['timestamp'])
-                    )
+                    '_id':
+                    str(item['_id']),  # Convert ObjectId to string
+                    'temperature':
+                    item['temperature'],
+                    'humidity':
+                    item['humidity'],
+                    'ldr_value':
+                    item['ldr_value'],
+                    'status':
+                    item.get('status', 'active'),
+                    'timestamp':
+                    item['timestamp'],
+                    'formatted_timestamp':
+                    time.strftime('%Y-%m-%d %H:%M:%S',
+                                  time.localtime(item['timestamp']))
                 }
                 processed_data.append(processed_item)
-            
+
             logger.info(f"Berhasil mengambil {len(processed_data)} dokumen")
-            
+
             return jsonify({
                 "status": "success",
                 "count": len(processed_data),
                 "data": processed_data
             }), 200
-            
+
         except PyMongoError as e:
             logger.error(f"Error database: {str(e)}")
             return jsonify({
@@ -166,7 +181,7 @@ def get_data():
                 "error": "Database Error",
                 "message": "Gagal mengambil data dari database"
             }), 500
-            
+
     except ValueError as e:
         logger.error(f"Parameter tidak valid: {str(e)}")
         return jsonify({
@@ -174,7 +189,7 @@ def get_data():
             "error": "Invalid Parameter",
             "message": "Parameter limit/sort harus berupa angka"
         }), 400
-        
+
     except Exception as e:
         logger.error(f"Error pada /get_data: {str(e)}", exc_info=True)
         return jsonify({
@@ -183,5 +198,8 @@ def get_data():
             "message": str(e)
         }), 500
 
+
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    # Menentukan port dari environment variable atau default ke 5000
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host='0.0.0.0', port=port)
