@@ -42,7 +42,7 @@ except PyMongoError as e:
 
 @app.route('/')
 def home():
-    return "Selamat datang di Flask!"  # Menampilkan pesan di URL utama
+    return "Backend Flask Aktif!"  # Menampilkan pesan di URL utama
 
 
 @app.route('/add_data', methods=['POST'])
