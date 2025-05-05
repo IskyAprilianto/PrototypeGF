@@ -3,75 +3,84 @@ import time
 import dht
 import urequests
 import network
+import ssd1306  # Library SSD1306 untuk OLED
 
-# ========== KONFIGURASI ==========
+# ========== KONFIGURASI ========== 
 # WiFi
 SSID = 'Mochi'
 PASSWORD = 'cukipuki'
 
 # Ubidots
 UBIDOTS_API_KEY = 'BBUS-X22dYuktZNwot2UyXDlW0br7H6FOIF'
-DEVICE_LABEL = 'CanopyaMonitoring'
+DEVICE_LABEL = 'canopyamonitoring'
 VARIABLE_LABEL_TEMP = 'temperature'
 VARIABLE_LABEL_HUM = 'humidity'
 VARIABLE_LABEL_LDR = 'ldr_value'
 
-# Flask API (ganti dengan URL server Flask yang benar)
+# Flask API
 FLASK_API_URL = 'https://9fda3355-e9d0-407b-8251-e35d4b04d3e4-00-2qpufjr3z6si3.riker.replit.dev:3000/add_data'
 
-# Pin
+# Pin Configuration
 DHT_PIN = 4
 LDR_PIN = 34
-SERVO_PIN = 13
-LED_PIN = machine.Pin(18, machine.Pin.OUT)  # Pin untuk LED
+SERVO1_PIN = 13  # Servo pertama
+SERVO2_PIN = 12  # Servo kedua (bergerak berlawanan)
+LED_PIN = machine.Pin(18, machine.Pin.OUT)
 
-# Servo Configuration
-SERVO_OPEN_ANGLE = 30    # Sudut buka (30°)
-SERVO_CLOSE_ANGLE = 110  # Sudut tutup (110°)
-SERVO_MIN_DUTY = 40      # Duty cycle untuk 0°
-SERVO_MAX_DUTY = 115     # Duty cycle untuk 180°
+# Servo Configuration - ANGLE FIXED HERE
+SERVO_OPEN_ANGLE = 160    # Sudut buka (180°)
+SERVO_CLOSE_ANGLE = 0     # Sudut tutup (0°)
+SERVO_MIN_DUTY = 20       # Duty cycle untuk 0°
+SERVO_MAX_DUTY = 100      # Duty cycle untuk 180°
 
-# ========== INISIALISASI ==========
-# Sensor DHT11
+# ========== INISIALISASI ========== 
+# Sensor
 dht_sensor = dht.DHT11(machine.Pin(DHT_PIN))
-
-# LDR
 ldr = machine.ADC(machine.Pin(LDR_PIN))
 
-# Servo
-servo = machine.PWM(machine.Pin(SERVO_PIN))
-servo.freq(50)  # Frekuensi standar servo (50Hz)
+# Servo (dua servo dengan gerakan berlawanan)
+servo1 = machine.PWM(machine.Pin(SERVO1_PIN))
+servo2 = machine.PWM(machine.Pin(SERVO2_PIN))
+servo1.freq(50)
+servo2.freq(50)
 
-# ========== FUNGSI ==========
+# OLED
+i2c = machine.I2C(0, scl=machine.Pin(22), sda=machine.Pin(21))
+oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+
+# ========== FUNGSI ========== 
 def read_ldr():
     """Membaca nilai intensitas cahaya dari LDR"""
     return ldr.read()
 
-def display_data(suhu, kelembaban, ldr_value):
-    """Menampilkan data sensor di serial monitor"""
-    print("\n=== DATA SENSOR ===")
-    print(f"Suhu: {suhu:.1f}°C")
-    print(f"Kelembaban: {kelembaban:.1f}%")
-    print(f"Intensitas Cahaya: {ldr_value}")
+def display_data_oled(temp, hum, ldr_value):
+    """Menampilkan data di OLED"""
+    oled.fill(0)
+    oled.text('Suhu: {:.1f}C'.format(temp), 0, 0)
+    oled.text('Kelembaban: {:.1f}%'.format(hum), 0, 10)
+    oled.text('LDR: {}'.format(ldr_value), 0, 20)
+    oled.text('Status Atap:', 0, 35)
+    oled.text('TERBUKA' if temp <= 30 else 'TERTUTUP', 0, 45)
+    oled.show()
 
-def move_servo(angle):
-    """Menggerakkan servo ke sudut tertentu"""
-    # Konversi sudut ke duty cycle
-    duty = int(SERVO_MIN_DUTY + (angle / 180) * (SERVO_MAX_DUTY - SERVO_MIN_DUTY))
-    servo.duty(duty)
-    print(f"Posisi Servo: {angle}° (duty: {duty})")
+def move_servos(angle):
+    """Menggerakkan dua servo dengan arah berlawanan"""
+    # Servo 1: normal (0° tutup, 180° buka)
+    duty1 = int(SERVO_MIN_DUTY + (angle / 180) * (SERVO_MAX_DUTY - SERVO_MIN_DUTY))
+    # Servo 2: terbalik (180° tutup, 0° buka)
+    duty2 = int(SERVO_MIN_DUTY + ((195 - angle) / 180) * (SERVO_MAX_DUTY - SERVO_MIN_DUTY))
+    
+    servo1.duty(duty1)
+    servo2.duty(duty2)
+    print(f"Servo1: {angle}° (duty: {duty1}), Servo2: {180-angle}° (duty: {duty2})")
 
 def control_led(state):
-    """Mengontrol LED berdasarkan state"""
-    if state:
-        LED_PIN.on()
-        print("LED: MENYALA")
-    else:
-        LED_PIN.off()
-        print("LED: MATI")
+    """Mengontrol LED"""
+    LED_PIN.value(state)
+    print("LED:", "ON" if state else "OFF")
 
 def send_data_to_ubidots(temp, hum, ldr_value):
-    """Mengirim data ke platform Ubidots"""
+    """Mengirim data ke Ubidots"""
     try:
         url = f"https://industrial.api.ubidots.com/api/v1.6/devices/{DEVICE_LABEL}"
         headers = {"X-Auth-Token": UBIDOTS_API_KEY}
@@ -80,103 +89,105 @@ def send_data_to_ubidots(temp, hum, ldr_value):
             VARIABLE_LABEL_HUM: {"value": hum},
             VARIABLE_LABEL_LDR: {"value": ldr_value}
         }
-        
-        response = urequests.post(url, json=payload, headers=headers)
-        print("\n[UBIDOTS] Status:", response.status_code)
-        print("[UBIDOTS] Respon:", response.text)
+        print(f"[UBIDOTS] Sending data to: {url}")
+        print(f"[UBIDOTS] Data: {payload}")
+        response = urequests.post(url, json=payload, headers=headers, timeout=10)
+        print("[UBIDOTS] Status Code:", response.status_code)
+        print("[UBIDOTS] Response:", response.text)
         response.close()
-        return True
+        return response.status_code == 200
     except Exception as e:
-        print("\n[UBIDOTS] Error:", e)
+        print("[UBIDOTS] Error:", e)
         return False
 
 def send_data_to_flask(temp, hum, ldr_value):
-    """Mengirim data ke server Flask"""
+    """Mengirim data ke Flask"""
     try:
         payload = {
             "temperature": temp,
             "humidity": hum,
             "ldr_value": ldr_value
         }
-        
-        response = urequests.post(FLASK_API_URL, json=payload)
-        print("[FLASK] Status:", response.status_code)
-        print("[FLASK] Respon:", response.text)
+        print(f"[FLASK] Sending data to: {FLASK_API_URL}")
+        print(f"[FLASK] Data: {payload}")
+        response = urequests.post(FLASK_API_URL, json=payload, timeout=10)
+        print("[FLASK] Status Code:", response.status_code)
+        print("[FLASK] Response:", response.text)
         response.close()
-        return True
+        return response.status_code == 200
     except Exception as e:
         print("[FLASK] Error:", e)
         return False
 
 def connect_wifi():
-    """Menghubungkan ESP32 ke jaringan WiFi"""
+    """Menghubungkan ke WiFi"""
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    
     if not wlan.isconnected():
-        print(f"\nMenghubungkan ke WiFi: {SSID}")
+        print("Connecting to WiFi...")
         wlan.connect(SSID, PASSWORD)
-        
-        # Tunggu hingga terhubung (maks 10 detik)
-        waktu_mulai = time.time()
-        while not wlan.isconnected():
-            if time.time() - waktu_mulai > 10:
-                print("Gagal terhubung ke WiFi")
-                return False
-            time.sleep(0.5)
-    
-    print("\nWiFi Terhubung!")
-    print("Alamat IP:", wlan.ifconfig()[0])
-    return True
+        for _ in range(10):
+            if wlan.isconnected():
+                break
+            time.sleep(1)
+    if wlan.isconnected():
+        print("WiFi Connected!")
+        print("IP:", wlan.ifconfig()[0])
+        return True
+    else:
+        print("WiFi Failed!")
+        return False
 
-# ========== PROGRAM UTAMA ==========
-print("\n=== SISTEM MONITORING RUMAH KACA ===")
-print("Memulai inisialisasi...")
-
-# Coba koneksi WiFi
-if connect_wifi():
-    print("Sistem siap!")
-else:
-    print("Gagal terhubung ke WiFi, sistem berjalan secara offline")
+# ========== PROGRAM UTAMA ========== 
+print("\n=== SISTEM KONTROL ATAP OTOMATIS ===")
+connect_wifi()
 
 while True:
     try:
-        # Baca data sensor
+        # Baca sensor
         dht_sensor.measure()
-        suhu = dht_sensor.temperature()
-        kelembaban = dht_sensor.humidity()
-        nilai_ldr = read_ldr()
+        temp = dht_sensor.temperature()
+        hum = dht_sensor.humidity()
+        ldr_value = read_ldr()
         
-        # Tampilkan data
-        display_data(suhu, kelembaban, nilai_ldr)
+        # Tampilkan di OLED
+        display_data_oled(temp, hum, ldr_value)
         
-        # Kontrol perangkat berdasarkan suhu
-        if suhu > 10:  # Jika suhu > 30°C
-            move_servo(SERVO_CLOSE_ANGLE)  # Tutup atap (110°)
-            control_led(True)  # Hidupkan LED
-        else:  # Jika suhu ≤ 30°C
-            move_servo(SERVO_OPEN_ANGLE)  # Buka atap (30°)
-            control_led(False)  # Matikan LED
+        # Kontrol atap dan LED - LOGIC FIXED HERE
+        if temp > 30:  # Jika PANAS
+            move_servos(SERVO_CLOSE_ANGLE)  # TUTUP (0°)
+            control_led(True)  # LED on
+            roof_status = "TERTUTUP"
+            led_status = "HIDUP"
+        else:  # Jika DINGIN
+            move_servos(SERVO_OPEN_ANGLE)  # BUKA (180°)
+            control_led(False)  # LED off
+            roof_status = "TERBUKA"
+            led_status = "MATI"
         
-        # Kirim data ke cloud (jika WiFi terhubung)
+        # Kirim data ke cloud jika WiFi terhubung
         if network.WLAN(network.STA_IF).isconnected():
             print("\nMengirim data ke cloud...")
-            status_ubidots = send_data_to_ubidots(suhu, kelembaban, nilai_ldr)
-            status_flask = send_data_to_flask(suhu, kelembaban, nilai_ldr)
-            
-            if status_ubidots and status_flask:
-                print("--> Semua data berhasil dikirim!")
-            else:
-                print("--> Ada masalah dalam pengiriman data")
+            ubidots_status = send_data_to_ubidots(temp, hum, ldr_value)
+            flask_status = send_data_to_flask(temp, hum, ldr_value)
+        else:
+            ubidots_status = flask_status = "Gagal menghubungkan WiFi"
+
+        # Print data to Thonny
+        print(f"Suhu: {temp:.1f} C")
+        print(f"Kelembaban: {hum:.1f}%")
+        print(f"LDR: {ldr_value}")
+        print(f"Lampu: {led_status}")
+        print(f"Status Atap: {roof_status}")
+        print(f"Status Pengiriman ke Ubidots: {'Sukses' if ubidots_status == True else 'Gagal'}")
+        print(f"Status Pengiriman ke Flask: {'Sukses' if flask_status == True else 'Gagal'}")
         
-        # Tunggu sebelum pembacaan berikutnya
-        print("\nMenunggu 30 detik...")
-        time.sleep(30)
+        time.sleep(15)  # Delay 15 detik
         
     except OSError as e:
-        print("\nError membaca sensor DHT11:", e)
+        print("Sensor Error:", e)
         time.sleep(5)
     except Exception as e:
-        print("\nError tidak terduga:", e)
+        print("System Error:", e)
         time.sleep(10)
 
