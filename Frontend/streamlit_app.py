@@ -37,7 +37,7 @@ def get_gemini_explanation(temp, humidity, ldr):
     try:
         context = (
             f"Sebagai ahli pertanian, berikan analisis singkat (5-7 kalimat) dalam Bahasa Indonesia "
-            f"tentang kondisi rumah kaca dengan:\n"
+            f"tentang kondisi rumah dengan:\n"
             f"- Suhu: {temp}°C\n"
             f"- Kelembaban: {humidity}%\n"
             f"- Intensitas Cahaya: {ldr}\n\n"
@@ -85,8 +85,8 @@ def format_timestamp(ts):
         return "Waktu tidak valid"
 
 # Streamlit UI
-st.set_page_config(page_title="Monitoring Rumah Kaca", layout="wide")
-st.title('🌿 Monitoring Rumah Kaca Cerdas Canopya')
+st.set_page_config(page_title="Monitoring Rumah ", layout="wide")
+st.title('🌿 Monitoring Atap Cerdas Canopya')
 
 # Cuaca Jakarta
 st.markdown("---")
