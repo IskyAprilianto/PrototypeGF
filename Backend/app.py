@@ -7,11 +7,11 @@ import os
 from datetime import datetime
 
 # Inisialisasi aplikasi Flask
-app = Flask(_name_)
+app = Flask(__name__)
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(_name_)
+logger = logging.getLogger(__name__)
 
 # Aktifkan CORS
 CORS(app)
