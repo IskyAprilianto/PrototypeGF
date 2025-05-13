@@ -14,7 +14,7 @@ WEATHER_API_KEY = 'bab07566b614de4ccb9d2cdf1da77c08'
 def get_weather_forecast(city_name, api_key):
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=id"
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=15)  # Extended timeout for weather API
         data = response.json()
         if response.status_code == 200:
             return {
@@ -63,7 +63,7 @@ def get_gemini_explanation(temp, humidity, ldr):
             f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
             json=payload,
             headers=headers,
-            timeout=15
+            timeout=15  # Extended timeout for Gemini API request
         )
         result = response.json()
         if 'candidates' in result and len(result['candidates']) > 0:
@@ -135,7 +135,7 @@ st.markdown("""
 if st.button('🔄 Perbarui Data', type='primary'):
     with st.spinner('Memuat data terbaru...'):
         try:
-            response = requests.get(FLASK_API_URL, timeout=10)
+            response = requests.get(FLASK_API_URL, timeout=15)  # Extended timeout for Flask request
             response.raise_for_status()
             api_data = response.json()
 
