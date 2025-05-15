@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import random
 import pandas as pd
 from datetime import datetime
 
@@ -35,12 +36,15 @@ def get_weather_forecast(city_name, api_key):
 def get_gemini_explanation(temp, humidity, ldr):
     try:
         context = (
-            f"Sebagai ahli pertanian, berikan analisis singkat (5-7 kalimat) dalam Bahasa Indonesia "
-            f"tentang kondisi rumah dengan:\n"
+            f"Sebagai ahli pertanian, berikan analisis mendalam mengenai kondisi rumah kaca dengan mempertimbangkan data berikut:\n"
             f"- Suhu: {temp}°C\n"
             f"- Kelembaban: {humidity}%\n"
             f"- Intensitas Cahaya: {ldr}\n\n"
-            f"Berikan rekomendasi tindakan jika diperlukan."
+            f"Berdasarkan kondisi tersebut, analisis apakah tanaman membutuhkan penyiraman tambahan dan apakah ada perubahan yang perlu dilakukan pada sistem atap Canopya (misalnya, membuka atau menutup atap).\n"
+            f"- Jika suhu terlalu tinggi dan kelembaban rendah, tanaman mungkin membutuhkan penyiraman segera. Harap informasikan jika sistem penyiraman perlu diaktifkan.\n"
+            f"- Jika kelembaban sudah cukup tetapi suhu sangat tinggi, atap Canopya perlu ditutup untuk menjaga suhu optimal.\n"
+            f"- Jika intensitas cahaya sangat rendah (seperti saat hujan terus-menerus), sistem penyiraman mungkin perlu lebih sering diaktifkan untuk menjaga kelembaban tanah.\n\n"
+            f"Harap sertakan rekomendasi terkait tindakan yang perlu diambil, seperti memberi perintah untuk sistem penyiraman otomatis melalui WhatsApp jika diperlukan."
         )
 
         headers = {"Content-Type": "application/json"}
@@ -84,7 +88,7 @@ def format_timestamp(ts):
         return "Waktu tidak valid"
 
 # Streamlit UI
-st.set_page_config(page_title="Monitoring Rumah", layout="wide")
+st.set_page_config(page_title="Monitoring Rumah ", layout="wide")
 st.title('🌿 Monitoring Atap Cerdas Canopya')
 
 # Cuaca Jakarta
@@ -95,16 +99,20 @@ cuaca = get_weather_forecast("Jakarta", WEATHER_API_KEY)
 if "error" in cuaca:
     st.warning(cuaca["error"])
 else:
+    # Styling Cuaca Jakarta
     st.markdown(f"""
-        *Kota:* {cuaca['kota']}  
-        *Cuaca:* {cuaca['cuaca'].capitalize()}  
-        *Suhu Udara:* {cuaca['suhu']} °C  
-        *Terasa Seperti:* {cuaca['terasa']} °C  
-        *Kelembaban:* {cuaca['kelembaban']} %  
-        *Kecepatan Angin:* {cuaca['angin']}  
-        *Tekanan Udara:* {cuaca['tekanan']}  
-        *Titik Embun (Dew Point):* {cuaca['dew_point']}  
-    """)
+        <div class="weather-box">
+            <h3>Cuaca Jakarta:</h3>
+            <p><strong>Kota:</strong> {cuaca['kota']}</p>
+            <p><strong>Cuaca:</strong> {cuaca['cuaca'].capitalize()}</p>
+            <p><strong>Suhu Udara:</strong> {cuaca['suhu']} °C</p>
+            <p><strong>Terasa Seperti:</strong> {cuaca['terasa']} °C</p>
+            <p><strong>Kelembaban:</strong> {cuaca['kelembaban']} %</p>
+            <p><strong>Kecepatan Angin:</strong> {cuaca['angin']}</p>
+            <p><strong>Tekanan Udara:</strong> {cuaca['tekanan']}</p>
+            <p><strong>Titik Embun (Dew Point):</strong> {cuaca['dew_point']}</p>
+        </div>
+    """, unsafe_allow_html=True)
 
 # CSS
 st.markdown("""
@@ -127,20 +135,19 @@ st.markdown("""
         margin: 10px 0;
         color: #333333;
     }
-    .header-box {
-        background-color: #4CAF50;
-        padding: 20px;
-        color: white;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
+    .weather-box {
+        background-color: #f1f8e9;
         border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        color: #1b5e20;
     }
-    .footer-box {
-        text-align: center;
-        font-size: 12px;
-        color: #888888;
-        margin-top: 20px;
+    .weather-box h3 {
+        color: #388e3c;
+    }
+    .weather-box p {
+        font-size: 16px;
+        margin: 5px 0;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -218,10 +225,7 @@ else:
     st.info("Klik tombol 'Perbarui Data' untuk memuat informasi terbaru dari sensor")
 
 # Footer
-st.markdown("""
-    <div class="footer-box">
-        Sistem Monitoring Rumah Kaca Cerdas Starlith Team © 2024 - Powered by Flask, Streamlit, dan Gemini AI
-        <br>🧐 Catatan: Streamlit bisa saja tidak terhubung ke server (backend Flask) karena Replit akan auto-sleep jika tidak diakses selama 5 menit. Jalankan ulang server Replit bila perlu.
-        <br>Terimakasih 😁👍
-    </div>
-""", unsafe_allow_html=True)
+st.markdown("---")
+st.caption("Sistem Monitoring Rumah Kaca Cerdas Starlith Team © 2024 - Powered by Flask, Streamlit, dan Gemini AI")
+st.caption("🧐Catatan: Streamlit bisa saja tidak terhubung ke server (backend Flask) karena Replit akan auto-sleep jika tidak diakses selama 5 menit. Jalankan ulang server Replit bila perlu.")
+st.caption("Terimakasih 😁👍")
