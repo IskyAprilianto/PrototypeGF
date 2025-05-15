@@ -36,7 +36,7 @@ def get_weather_forecast(city_name, api_key):
 def get_gemini_explanation(temp, humidity, ldr):
     try:
         context = (
-            f"Sebagai ahli pertanian, berikan analisis mendalam mengenai kondisi rumah kaca dengan mempertimbangkan data berikut:\n"
+            f"Sebagai ahli pertanian, berikan analisis mendalam mengenai kondisi atap cerdas Canopya dengan mempertimbangkan data berikut:\n"
             f"- Suhu: {temp}°C\n"
             f"- Kelembaban: {humidity}%\n"
             f"- Intensitas Cahaya: {ldr}\n\n"
@@ -88,7 +88,7 @@ def format_timestamp(ts):
         return "Waktu tidak valid"
 
 # Streamlit UI
-st.set_page_config(page_title="Monitoring Rumah ", layout="wide")
+st.set_page_config(page_title="Monitoring Atap Cerdas Canopya", layout="wide")
 st.title('🌿 Monitoring Atap Cerdas Canopya')
 
 # Cuaca Jakarta
@@ -182,9 +182,9 @@ if st.button('🔄 Perbarui Data', type='primary'):
                     st.write(analysis)
 
                     if latest["temperature"] > 30:
-                        st.markdown('<div class="warning-box">⚠ <strong>Pemberitahuan: Tudung Akan Ditutup</strong><br>Suhu melebihi 30°C, tudung rumah kaca akan ditutup secara otomatis untuk melindungi tanaman dari suhu yang berlebihan.</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="warning-box">⚠ <strong>Pemberitahuan: Tudung Akan Ditutup</strong><br>Suhu melebihi 30°C, tudung atap cerdas Canopya akan ditutup secara otomatis untuk melindungi tanaman dari suhu yang berlebihan.</div>', unsafe_allow_html=True)
                     else:
-                        st.markdown('<div class="warning-box">🌞 <strong>Pemberitahuan: Tudung Akan Dibuka</strong><br>Suhu berada dalam rentang optimal untuk tanaman, tudung rumah kaca akan dibuka secara otomatis untuk pencahayaan yang lebih baik.</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="warning-box">🌞 <strong>Pemberitahuan: Tudung Akan Dibuka</strong><br>Suhu berada dalam rentang optimal untuk tanaman, tudung atap cerdas Canopya akan dibuka secara otomatis untuk pencahayaan yang lebih baik.</div>', unsafe_allow_html=True)
 
                 st.subheader('📈 Grafik Historis')
                 df = pd.DataFrame(data)
