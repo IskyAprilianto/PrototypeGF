@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import random
 import pandas as pd
 from datetime import datetime
 
@@ -85,7 +84,7 @@ def format_timestamp(ts):
         return "Waktu tidak valid"
 
 # Streamlit UI
-st.set_page_config(page_title="Monitoring Rumah ", layout="wide")
+st.set_page_config(page_title="Monitoring Rumah", layout="wide")
 st.title('🌿 Monitoring Atap Cerdas Canopya')
 
 # Cuaca Jakarta
@@ -127,6 +126,21 @@ st.markdown("""
         border-radius: 5px;
         margin: 10px 0;
         color: #333333;
+    }
+    .header-box {
+        background-color: #4CAF50;
+        padding: 20px;
+        color: white;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 10px;
+    }
+    .footer-box {
+        text-align: center;
+        font-size: 12px;
+        color: #888888;
+        margin-top: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -204,7 +218,10 @@ else:
     st.info("Klik tombol 'Perbarui Data' untuk memuat informasi terbaru dari sensor")
 
 # Footer
-st.markdown("---")
-st.caption("Sistem Monitoring Rumah Kaca Cerdas Starlith Team © 2024 - Powered by Flask, Streamlit, dan Gemini AI")
-st.caption("🧐Catatan: Streamlit bisa saja tidak terhubung ke server (backend Flask) karena Replit akan auto-sleep jika tidak diakses selama 5 menit. Jalankan ulang server Replit bila perlu.")
-st.caption("Terimakasih 😁👍")
+st.markdown("""
+    <div class="footer-box">
+        Sistem Monitoring Rumah Kaca Cerdas Starlith Team © 2024 - Powered by Flask, Streamlit, dan Gemini AI
+        <br>🧐 Catatan: Streamlit bisa saja tidak terhubung ke server (backend Flask) karena Replit akan auto-sleep jika tidak diakses selama 5 menit. Jalankan ulang server Replit bila perlu.
+        <br>Terimakasih 😁👍
+    </div>
+""", unsafe_allow_html=True)
